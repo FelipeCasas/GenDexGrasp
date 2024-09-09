@@ -34,7 +34,7 @@ class IsaacGraspTestForce_shadowhand(BaseTask):
     def __init__(self, cfg, sim_params, physics_engine, device_type, device_id, headless,
                  init_opt_q: torch.tensor, object_name: str, object_volume: float,
                  agent_index=[[[0, 1, 2, 3, 4, 5]], [[0, 1, 2, 3, 4, 5]]],
-                 fix_object=False):
+                 fix_object=False): 
         self.gym = None
         self.viewer = None
         self.num_sim = 0
@@ -246,10 +246,14 @@ class IsaacGraspTestForce_shadowhand(BaseTask):
         pass
 
     def _set_normal_force_pose(self):
-        step_size = 0.2
-        learning_rate = 0.5
-        contact_threshold = 0.005
-        num_object_pts = 2048
+        #print(os.getcwd())
+        p ='envs/tasks/adam_config.yaml'
+        with open(p) as f:
+            adam_config = yaml.safe_load(f)
+        step_size = adam_config['step_size']
+        learning_rate = adam_config['learning_rate']
+        contact_threshold = adam_config['contact_threshold']
+        num_object_pts = adam_config['num_object_pts']
         object_pts = self.object_mesh.sample(num_object_pts)
         object_pts = torch.tensor(object_pts, device=self.device)
 

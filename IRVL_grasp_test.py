@@ -22,14 +22,8 @@ def get_parser():
 
     parser.add_argument('--data_dir', default='', type=str)
     parser.add_argument('--object_list', default='', type=str)
-    parser.add_argument('--output_dir', default='', type=str)
-    parser.add_argument('--output_name', default='test_results', type=str)
     
     parser.add_argument('--mode', default='test', type=str)
-    parser.add_argument('--filtered', help='prefiltered results by energy',
-                         default=False, action = 'store_true')
-    parser.add_argument('--headless', help='Run simulation headless',
-                         default=False, action = 'store_true')
     args_ = parser.parse_args()
     tag = str(time.time())
     return args_, tag
@@ -119,7 +113,7 @@ if __name__ == '__main__':
     else:
         raise NotImplementedError
 
-    sim_headless = args.headless
+    sim_headless = False
     device = "cuda"
 
     # load object list
@@ -128,8 +122,8 @@ if __name__ == '__main__':
 
     
     data_basedir = args.data_dir
-    record_path = os.path.join(args.output_dir, f'{args.output_name}.json') 
-    tra_dir = data_basedir # Folder containing grasp data
+    record_path = os.path.join(data_basedir, f'test_record-{time_tag}.json')
+    tra_dir = os.path.join(data_basedir, 'tra_dir')
     tra_path_list = os.listdir(tra_dir)
 
     isaac_model = None
@@ -156,13 +150,10 @@ if __name__ == '__main__':
 
         #Data to test
         data_listdir = os.listdir(tra_dir)
-        if not args.filtered:
-            data_listdir.sort(key=lambda x: int(x.split('-')[2].split('.pt')[0]))
+        data_listdir.sort(key=lambda x: int(x.split('-')[2].split('.pt')[0]))
 
         print(data_listdir) #Print files
-        
-        #print(object_list)
-        
+
         for object_name in object_list:
             # # todo: for debug
             # object_name = 'ycb+potted_meat_can'
@@ -173,31 +164,17 @@ if __name__ == '__main__':
             # TODO! HEEEERE 
             q_tra_best = []
             #Get min energy grasp for testing
-            
-            if not args.filtered: 
-                #GenDexGrasp loading and filtering of data
-                for tra_path in data_listdir:
-                    if tra_path.split('-')[1] != object_name:
-                        continue
-                    i_record = torch.load(os.path.join(tra_dir, tra_path))
-                    #print(i_record)
-                    q_tra = i_record['q_tra']
-                    energy = i_record['energy']
-                    q_tra_best.append(q_tra[energy.min(dim=0)[1], -1, :].unsqueeze(0).to(device))
-                if len(q_tra_best)==0:
-                    print(f"Object {object_name} was not found within the grasps provided.")
+            for tra_path in data_listdir:
+                if tra_path.split('-')[1] != object_name:
                     continue
-                q_final_best = torch.cat(q_tra_best, dim=0)
-            else:
-                for file in data_listdir:
-                    #print(file.split('-')[2][:-3])
-                    if file.split('-')[2][:-3] != object_name:
-                        continue
-                    i_record = torch.load(os.path.join(tra_dir,file))
-                    break
-                q_final_best = i_record['q_data']
-                    
+                i_record = torch.load(os.path.join(tra_dir, tra_path))
+                print(i_record)
+                q_tra = i_record['q_tra']
+                energy = i_record['energy']
+                q_tra_best.append(q_tra[energy.min(dim=0)[1], -1, :].unsqueeze(0).to(device))
+            q_final_best = torch.cat(q_tra_best, dim=0)
             
+
             print(cfg['eval_policy'])
             if isaac_model is not None:
                 del isaac_model

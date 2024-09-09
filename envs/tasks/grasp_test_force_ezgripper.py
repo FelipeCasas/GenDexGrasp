@@ -243,10 +243,13 @@ class IsaacGraspTestForce_ezgripper(BaseTask):
             self.step_sim_q(self.closure_q.clone())
 
     def _set_normal_force_pose(self):
-        step_size = 0.2
-        learning_rate = 0.5
-        contact_threshold = 0.005
-        num_object_pts = 2048
+        p ='envs/tasks/adam_config.yaml'
+        with open(p) as f:
+            adam_config = yaml.safe_load(f)
+        step_size = adam_config['step_size']
+        learning_rate = adam_config['learning_rate']
+        contact_threshold = adam_config['contact_threshold']
+        num_object_pts = adam_config['num_object_pts']
         object_pts = self.object_mesh.sample(num_object_pts)
         object_pts = torch.tensor(object_pts, device=self.device)
 

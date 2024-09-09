@@ -1,0 +1,4 @@
+step_size: 0.2
+learning_rate: 0.5
+contact_threshold: 0.005
+num_object_pts: 2048
