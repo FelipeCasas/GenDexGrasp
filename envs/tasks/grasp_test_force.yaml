@@ -22,7 +22,7 @@ env:
   pointNetLR: 0.0001
   visualizePointcloud: False
 
-  enableCameraSensors: False
+  enableCameraSensors: True
   depth_bar: 10
   map_dis_bar: 0.1
   moving_pc_mode: False
@@ -32,7 +32,7 @@ env:
   clipActions: 1.0
 
   asset:
-    assetRoot: "envs/assets"
+    assetRoot: "./envs/assets/"
     AssetNumTrain: 1
     trainObjAssets:
       0:

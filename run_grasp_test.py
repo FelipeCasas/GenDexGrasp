@@ -20,12 +20,9 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--robot_name', default='barrett', type=str)
 
-    parser.add_argument('--dataset', default='SqrtUnseenBarrett-SharpClamp_A3', type=str)
-
-    parser.add_argument('--domain', default='ood', type=str)
-    parser.add_argument('--comment', default='correct', type=str)
-    parser.add_argument('--base_name', default='align_dist', type=str)
-
+    parser.add_argument('--data_dir', default='', type=str)
+    parser.add_argument('--object_list', default='', type=str)
+    
     parser.add_argument('--mode', default='test', type=str)
     args_ = parser.parse_args()
     tag = str(time.time())
@@ -94,7 +91,7 @@ if __name__ == '__main__':
     print(f'double check....')
     # time.sleep(2.)yiran
 
-    cfg_path = 'envs/tasks/grasp_test_force.yaml'
+    cfg_path = './envs/tasks/grasp_test_force.yaml'
     with open(cfg_path) as f:
         cfg = yaml.safe_load(f)
     sim_params = get_sim_param()
@@ -116,14 +113,15 @@ if __name__ == '__main__':
     else:
         raise NotImplementedError
 
-    sim_headless = True
+    sim_headless = False
     device = "cuda"
 
-    # load dataset
-    object_list = json.load(open(os.path.join('logs_gen', args.dataset, 'split_train_validate_objects.json'), 'rb'))['validate']
+    # load object list
+    object_list = json.load(open(args.object_list))['validate']
     object_list.sort()
 
-    data_basedir = os.path.join('logs_gen', args.dataset, f'{args.domain}-{args.robot_name}-{args.comment}', args.base_name)
+    
+    data_basedir = args.data_dir
     record_path = os.path.join(data_basedir, f'test_record-{time_tag}.json')
     tra_dir = os.path.join(data_basedir, 'tra_dir')
     tra_path_list = os.listdir(tra_dir)
@@ -132,9 +130,11 @@ if __name__ == '__main__':
     if args.mode == 'debug':
         pass
     elif args.mode == 'test':
+        #load or create new record
         try:
             # # todo: skip load new record
             # raise FileNotFoundError
+            
             test_record = json.load(open(record_path, 'rb'))
             old_object_list = object_list.copy()
             for object_name in old_object_list:
@@ -147,37 +147,53 @@ if __name__ == '__main__':
             print('create a new record')
             test_record = {x: {} for x in object_list}
             test_record['cfg'] = cfg
+
+        #Data to test
         data_listdir = os.listdir(tra_dir)
         data_listdir.sort(key=lambda x: int(x.split('-')[2].split('.pt')[0]))
-        print(data_listdir)
+
+        print(data_listdir) #Print files
+
         for object_name in object_list:
             # # todo: for debug
             # object_name = 'ycb+potted_meat_can'
 
             print(f'Test for {object_name}')
             # load the data
+            # ICRA 2025
+            # TODO! HEEEERE 
             q_tra_best = []
+            #Get min energy grasp for testing
             for tra_path in data_listdir:
                 if tra_path.split('-')[1] != object_name:
                     continue
                 i_record = torch.load(os.path.join(tra_dir, tra_path))
+                print(i_record)
                 q_tra = i_record['q_tra']
                 energy = i_record['energy']
                 q_tra_best.append(q_tra[energy.min(dim=0)[1], -1, :].unsqueeze(0).to(device))
             q_final_best = torch.cat(q_tra_best, dim=0)
+            
 
             print(cfg['eval_policy'])
             if isaac_model is not None:
                 del isaac_model
                 gc.collect()
-            object_mesh_path = f'data/object/{object_name.split("+")[0]}/{object_name.split("+")[1]}/{object_name.split("+")[1]}.stl'
+
+            # Load object
+            object_mesh_path = f'./data/object/{object_name.split("+")[0]}/{object_name.split("+")[1]}/{object_name.split("+")[1]}.stl'
             object_mesh = tm.load(object_mesh_path)
             object_volume = object_mesh.volume
             print(f'object volume: {object_volume}')
+
+
+            #Run Test
             isaac_model = IsaacGraspTestForce(cfg, sim_params, gymapi.SIM_PHYSX, "cuda", 0, headless=sim_headless,
                                               init_opt_q=q_final_best, object_name=object_name, object_volume=object_volume,
                                               fix_object=False)
             achieve_6dir = isaac_model.push_object()
+
+            # Save result
             test_record[object_name][f'total_num'] = int(achieve_6dir.shape[0])
             test_record[object_name][f'succ_num'] = int(achieve_6dir.sum())
             test_record[object_name]['succ_flag'] = achieve_6dir.tolist()

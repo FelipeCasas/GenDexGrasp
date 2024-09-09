@@ -342,8 +342,12 @@ class IsaacGraspTestForce_shadowhand(BaseTask):
 
         if self.dexterous_loaded == False:
             self.dexterous_actor_list = []
-            asset_root = self.asset_root
-            dexterous_asset_file = "franka_description/robots/movable_dexterous_hand_new.urdf"
+            asset_root = os.path.normpath(self.asset_root)
+            dexterous_asset_file = "movable_hand_urdf/shadowhand/robots/movable_shadowhand.urdf"
+            dexterous_asset_file= os.path.normpath(dexterous_asset_file)
+            print()
+            print(os.path.exists(os.path.join(asset_root,dexterous_asset_file)),os.path.join(asset_root,dexterous_asset_file), "ASSET PATH CORRECT?")
+            print()
             # dexterous_asset_file = "franka_description/robots/movable_dexterous_hand_fine_collision.urdf"
             asset_options = gymapi.AssetOptions()
             asset_options.density = self.cfg['agent']['density']
@@ -394,6 +398,10 @@ class IsaacGraspTestForce_shadowhand(BaseTask):
 
         dexterous_dof_state = np.zeros_like(
             dexterous_dof_max_torque, gymapi.DofState.dtype)
+        #print(env_id, "HGEEEERERS")
+        #print(default_dof_pos, "HGEEEERERS")
+        #print(dexterous_dof_state, "HGEEEERERS")
+
         dexterous_dof_state["pos"] = default_dof_pos
 
         dexterous_actor = self.gym.create_actor(
@@ -453,6 +461,7 @@ class IsaacGraspTestForce_shadowhand(BaseTask):
             # print(get_rot6d_from_rpy(sim_rpy[i]))
         # quit()
         sim_joint_angle = torch.zeros_like(opt_joint_angle, device=self.device)
+        #TODO! JOint mapping to Isaac Sim
         sim_joint_angle[:, :6] = opt_joint_angle[:, :6]
         sim_joint_angle[:, 6:11] = opt_joint_angle[:, 14:19]
         sim_joint_angle[:, 11:15] = opt_joint_angle[:, 6:10]
