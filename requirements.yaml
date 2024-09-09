@@ -172,7 +172,7 @@ dependencies:
     - rsa==4.9
     - rtree==1.0.0
     - scikit-learn==1.1.1
-    - scipy
+    - scipy==1.5.0
     - seaborn==0.11.2
     - send2trash==1.8.0
     - sniffio==1.2.0
