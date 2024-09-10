@@ -15,8 +15,16 @@ if __name__ == '__main__':
     from utils.visualize_plotly import plot_point_cloud
     from plotly import graph_objects as go
     # robot_name = 'shadowhand'  # shadowhand dof #24
-    robot_name = 'shadowhand'  # barrett dof #8
-    init_opt_q = torch.zeros(1, 9 + 24, device='cuda')
+    # robot_name = 'shadowhand'  # barrett dof #8
+    robot_name = 'ezgripper' # ezgripper dof 4
+
+    ndofs = {
+        'ezgripper': 4,
+        'barrett': 8,
+        'shadowhand': 24
+    }
+
+    init_opt_q = torch.zeros(1, 9 + ndofs[robot_name], device='cuda')
     init_opt_q[:, :3] = torch.tensor([0.2, 0.02, -0.3], device='cuda')
     init_opt_q[:, 3:9] = torch.tensor([1., 0., 0., 0., 0., 1.], device='cuda')
 
