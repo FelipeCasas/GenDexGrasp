@@ -250,6 +250,7 @@ class IsaacGraspTestForce_ezgripper(BaseTask):
         learning_rate = adam_config['learning_rate']
         contact_threshold = adam_config['contact_threshold']
         num_object_pts = adam_config['num_object_pts']
+        hmodel_type = adam_config['hmodel_type']
         object_pts = self.object_mesh.sample(num_object_pts)
         object_pts = torch.tensor(object_pts, device=self.device)
 
@@ -258,7 +259,7 @@ class IsaacGraspTestForce_ezgripper(BaseTask):
         opt_q_angle.requires_grad = True
         opt_q = torch.cat([opt_q_global, opt_q_angle], dim=1)
         optimizer = torch.optim.Adam([opt_q_angle], lr=learning_rate)
-        hand_model = get_handmodel('ezgripper', self.env_num, self.device, 1.)
+        hand_model = get_handmodel('ezgripper', self.env_num, self.device, hmodel_type, 1.)
         surface_points, surface_normal = hand_model.get_surface_points_and_normals(q=opt_q)
         surface_points = surface_points.reshape(-1, 3)
         surface_normal = surface_normal.reshape(-1, 3)
@@ -273,7 +274,10 @@ class IsaacGraspTestForce_ezgripper(BaseTask):
             normal_mask[surface_points_distance2mesh_values < contact_threshold] = 1.
             normal_mask = normal_mask.reshape(-1, 1).repeat(1, 3)
 
-        surface_points_target = (surface_points.clone() + step_size * normal_mask * surface_normal.clone()).detach()
+        if hmodel_type == "gcs":
+            surface_points_target = (surface_points.clone() - step_size * normal_mask * surface_normal.clone()).detach()
+        else:
+            surface_points_target = (surface_points.clone() + step_size * normal_mask * surface_normal.clone()).detach()
         loss = (surface_points - surface_points_target).norm(dim=1).sum()
         optimizer.zero_grad()
         loss.backward()

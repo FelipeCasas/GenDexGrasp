@@ -22,7 +22,7 @@ import trimesh.sample
 from utils.visualize_plotly import plot_mesh
 
 
-class XHandModel:
+class GenDexHandModel:
     def __init__(self, robot_name, urdf_filename, mesh_path,
                  batch_size=1, 
                  device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
@@ -459,7 +459,7 @@ class XHandModel:
         return data
 
 
-class HandModel:
+class GcsHandModel:
     def __init__(
         self,
         robot_name,

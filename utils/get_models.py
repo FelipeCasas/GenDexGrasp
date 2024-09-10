@@ -1,12 +1,15 @@
 import json
-from utils_model.HandModel import HandModel
+from utils_model.HandModel import GcsHandModel, GenDexHandModel
 
 
-def get_handmodel(robot, batch_size, device, hand_scale=1.):
+def get_handmodel(robot, batch_size, device, model_type="gcs", hand_scale=1.):
     urdf_assets_meta = json.load(open("data/urdf/urdf_assets_meta.json"))
     urdf_path = urdf_assets_meta['urdf_path'][robot]
     meshes_path = urdf_assets_meta['meshes_path'][robot]
-    hand_model = HandModel(robot, urdf_path, meshes_path, batch_size=batch_size, device=device, hand_scale=hand_scale)
+    if model_type == "gcs":
+        hand_model = GcsHandModel(robot, urdf_path, meshes_path, batch_size=batch_size, device=device, hand_scale=hand_scale)
+    else:
+        hand_model = GenDexHandModel(robot, urdf_path, meshes_path, batch_size=batch_size, device=device, hand_scale=hand_scale)
     return hand_model
 
 
