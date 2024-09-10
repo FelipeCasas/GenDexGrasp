@@ -100,6 +100,10 @@ if __name__ == '__main__':
     cfg_path = './envs/tasks/grasp_test_force.yaml'
     with open(cfg_path) as f:
         cfg = yaml.safe_load(f)
+    adam_cfg_p ='envs/tasks/adam_config.yaml'
+    with open(adam_cfg_p) as f:
+        adam_cfg = yaml.safe_load(f)
+
     sim_params = get_sim_param()
     if args.robot_name == 'robotiq_3finger':
         sim_params.physx.contact_offset = 0.1
@@ -153,6 +157,7 @@ if __name__ == '__main__':
             print('create a new record')
             test_record = {x: {} for x in object_list}
             test_record['cfg'] = cfg
+            test_record['adam_cfg'] = adam_cfg
 
         #Data to test
         data_listdir = os.listdir(tra_dir)
