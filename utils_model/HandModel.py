@@ -545,38 +545,38 @@ class HandModel:
 
         # new 2.1
         # Acutally consider both revolute and prismatic joints!
-        self.dynamic_joints = []
+        self.revolute_joints = []
         for i in range(len(self.robot_full.joints)):
             if self.robot_full.joints[i].joint_type in {"revolute", "prismatic"}:
-                self.dynamic_joints.append(self.robot_full.joints[i])
-        self.dynamic_joints_q_mid = []
-        self.dynamic_joints_q_var = []
-        self.dynamic_joints_q_upper = []
-        self.dynamic_joints_q_lower = []
+                self.revolute_joints.append(self.robot_full.joints[i])
+        self.revolute_joints_q_mid = []
+        self.revolute_joints_q_var = []
+        self.revolute_joints_q_upper = []
+        self.revolute_joints_q_lower = []
         for i in range(len(self.robot.get_joint_parameter_names())):
-            for j in range(len(self.dynamic_joints)):
+            for j in range(len(self.revolute_joints)):
                 if (
-                    self.dynamic_joints[j].name
+                    self.revolute_joints[j].name
                     == self.robot.get_joint_parameter_names()[i]
                 ):
-                    joint = self.dynamic_joints[j]
+                    joint = self.revolute_joints[j]
             assert joint.name == self.robot.get_joint_parameter_names()[i]
-            self.dynamic_joints_q_mid.append(
+            self.revolute_joints_q_mid.append(
                 (joint.limit.lower + joint.limit.upper) / 2
             )
-            self.dynamic_joints_q_var.append(
+            self.revolute_joints_q_var.append(
                 ((joint.limit.upper - joint.limit.lower) / 2) ** 2
             )
-            self.dynamic_joints_q_lower.append(joint.limit.lower)
-            self.dynamic_joints_q_upper.append(joint.limit.upper)
+            self.revolute_joints_q_lower.append(joint.limit.lower)
+            self.revolute_joints_q_upper.append(joint.limit.upper)
 
-        self.dynamic_joints_q_lower = (
-            torch.Tensor(self.dynamic_joints_q_lower)
+        self.revolute_joints_q_lower = (
+            torch.Tensor(self.revolute_joints_q_lower)
             .repeat([self.batch_size, 1])
             .to(device)
         )
-        self.dynamic_joints_q_upper = (
-            torch.Tensor(self.dynamic_joints_q_upper)
+        self.revolute_joints_q_upper = (
+            torch.Tensor(self.revolute_joints_q_upper)
             .repeat([self.batch_size, 1])
             .to(device)
         )
