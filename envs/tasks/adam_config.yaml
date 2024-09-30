@@ -1,5 +1,5 @@
-step_size: 0.02 # Try with (1) 0.02, (2) 0.05, (3) 0.1
-learning_rate: 0.1 # Try with a lower LR like 0.1 or 0.5 (gdx)
+step_size: 0.02 
+learning_rate: 0.1 
 contact_threshold: 0.005
 num_object_pts: 2048
-hmodel_type: "gdx" # Options: "gcs" (our hand model) or "gdx" (gendexgrasp). Can try both to see which gives best results
+hmodel_type: "gdx"

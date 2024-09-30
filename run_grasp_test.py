@@ -21,8 +21,8 @@ def get_parser():
     parser.add_argument('--robot_name', default='barrett', type=str)
 
     parser.add_argument('--data_dir', default='', type=str)
-    parser.add_argument('--object_list', default='', type=str)
-    parser.add_argument('--output_dir', default='', type=str)
+    parser.add_argument('--object_list', default='./split_train_validate_objects.json', type=str)
+    parser.add_argument('--output_dir', default='./results', type=str)
     parser.add_argument('--output_name', default='test_results', type=str)
     
     parser.add_argument('--mode', default='test', type=str)
@@ -54,7 +54,6 @@ def get_sim_param():
 
 
 def compute_penetration(opt_q, object_name):
-    from utils_model.HandModel import HandModel
     from utils.get_models import get_handmodel
     import trimesh as tm
     import trimesh.sample
@@ -90,6 +89,14 @@ def compute_penetration(opt_q, object_name):
 
 
 if __name__ == '__main__':
+
+    '''
+    Sample Run:
+
+    python run_grasp_test.py --filtered --headless --data_dir=gopt_results/fullrobots-sharp_lift_penw60/ood/ezgripper --robot_name=ezgripper --output_name=ez1
+    '''
+
+
     set_global_seed(seed=42)
     torch.set_printoptions(precision=4, sci_mode=False, edgeitems=8)
     args, time_tag = get_parser()
@@ -141,10 +148,7 @@ if __name__ == '__main__':
         pass
     elif args.mode == 'test':
         #load or create new record
-        try:
-            # # todo: skip load new record
-            # raise FileNotFoundError
-            
+        try:          
             test_record = json.load(open(record_path, 'rb'))
             old_object_list = object_list.copy()
             for object_name in old_object_list:
@@ -159,23 +163,15 @@ if __name__ == '__main__':
             test_record['cfg'] = cfg
             test_record['adam_cfg'] = adam_cfg
 
-        #Data to test
+        # Data to test
         data_listdir = os.listdir(tra_dir)
         if not args.filtered:
             data_listdir.sort(key=lambda x: int(x.split('-')[2].split('.pt')[0]))
 
-        print(data_listdir) #Print files
-        
-        #print(object_list)
+        print(data_listdir)        
         
         for object_name in object_list:
-            # # todo: for debug
-            # object_name = 'ycb+potted_meat_can'
-
             print(f'Test for {object_name}')
-            # load the data
-            # ICRA 2025
-            # TODO! HEEEERE 
             q_tra_best = []
             #Get min energy grasp for testing
             
@@ -185,7 +181,6 @@ if __name__ == '__main__':
                     if tra_path.split('-')[1] != object_name:
                         continue
                     i_record = torch.load(os.path.join(tra_dir, tra_path))
-                    #print(i_record)
                     q_tra = i_record['q_tra']
                     energy = i_record['energy']
                     q_tra_best.append(q_tra[energy.min(dim=0)[1], -1, :].unsqueeze(0).to(device))
@@ -194,8 +189,8 @@ if __name__ == '__main__':
                     continue
                 q_final_best = torch.cat(q_tra_best, dim=0)
             else:
+                # If already filtered the minimum energy grasp
                 for file in data_listdir:
-                    #print(file.split('-')[2][:-3])
                     if file.split('-')[2][:-3] != object_name:
                         continue
                     i_record = torch.load(os.path.join(tra_dir,file))
@@ -227,7 +222,6 @@ if __name__ == '__main__':
             test_record[object_name]['succ_flag'] = achieve_6dir.tolist()
             print(test_record[object_name])
             print(f'Is Grasp Stable: {achieve_6dir}')
-            # todo: for debug
             json.dump(test_record, open(record_path, 'w'))
     else:
         raise NotImplementedError
