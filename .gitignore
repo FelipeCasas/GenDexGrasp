@@ -1,5 +1,5 @@
 # Custom includes
-results/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -7,7 +7,9 @@ __pycache__/
 *$py.class
 
 # C extensions
-*.so
+
+
+.so
 
 # Distribution / packaging
 .Python
@@ -133,12 +135,12 @@ dmypy.json
 
 
 # For GenDexGrasp Repo ignore config
-data/
+
 dataset/
 logs_train_cvae/
 logs_inf_cvae/
 logs_opt/
-envs/assets/
+
 .idea/
 logs_gen/
 MultiDex/*/
